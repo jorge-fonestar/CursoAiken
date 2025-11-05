@@ -1,0 +1,28 @@
+{
+  "name": "qsochain",
+  "version": "1.0.0",
+  "description": "Plataforma descentralizada para confirmar y verificar contactos entre operadores de radioaficionados (HAMRadio) utilizando blockchain de Cardano.",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run build && node dist/transaction.js",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "build:run": "npm run build && node dist/transaction.js",
+    "clean": "rimraf dist",
+    "ts-node": "ts-node src/transaction.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@meshsdk/core": "^1.8.14",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "rimraf": "^6.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
