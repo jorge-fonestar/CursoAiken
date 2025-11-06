@@ -25,10 +25,17 @@ function validateMultisigRequirements(
         };
     }
     
-    if (signingAddresses.length !== requiredSignatures) {
+    if (signingAddresses.length < requiredSignatures) {
         return {
             isValid: false,
-            message: `Multisig ${requiredSignatures}-of-${totalAuthorized} requiere exactamente ${requiredSignatures} firmas. Proporcionadas: ${signingAddresses.length}`
+            message: `Multisig ${requiredSignatures}-of-${totalAuthorized} requiere AL MENOS ${requiredSignatures} firmas. Proporcionadas: ${signingAddresses.length}`
+        };
+    }
+    
+    if (signingAddresses.length > totalAuthorized) {
+        return {
+            isValid: false,
+            message: `No se pueden proporcionar más de ${totalAuthorized} firmas. Proporcionadas: ${signingAddresses.length}`
         };
     }
     
@@ -53,7 +60,7 @@ function validateMultisigRequirements(
     
     return {
         isValid: true,
-        message: `Validación exitosa: ${requiredSignatures} firmantes únicos y autorizados de ${totalAuthorized} posibles`
+        message: `Validación exitosa: ${signingAddresses.length} firmantes válidos (mínimo ${requiredSignatures} de ${totalAuthorized} requerido)`
     };
 }
 
@@ -107,38 +114,45 @@ async function runMultisigTests() {
     const result2 = validateMultisigRequirements(authorizedAddresses, insufficientSigners);
     console.log(`   Resultado: ${result2.isValid ? '✅' : '❌'} ${result2.message}`);
     
-    // ESCENARIO 3: Firmas excesivas (4 de 5)
-    console.log("\n📋 ESCENARIO 3: Firmas excesivas (4 firmantes)");
+    // ESCENARIO 3: Firmas válidas pero más del mínimo (4 de 5)
+    console.log("\n📋 ESCENARIO 3: Más del mínimo pero válidas (4 firmantes)");
     const excessiveSigners = [authorizedAddresses[0], authorizedAddresses[1], authorizedAddresses[2], authorizedAddresses[3]];
     const result3 = validateMultisigRequirements(authorizedAddresses, excessiveSigners);
     console.log(`   Resultado: ${result3.isValid ? '✅' : '❌'} ${result3.message}`);
     
-    // ESCENARIO 4: Firmantes duplicados
-    console.log("\n📋 ESCENARIO 4: Firmantes duplicados");
-    const duplicateSigners = [authorizedAddresses[0], authorizedAddresses[1], authorizedAddresses[0]]; // Wallet 1 repetida
-    const result4 = validateMultisigRequirements(authorizedAddresses, duplicateSigners);
+    // ESCENARIO 4: Todas las firmas (5 de 5)
+    console.log("\n📋 ESCENARIO 4: Todas las firmas disponibles (5 firmantes)");
+    const allSigners = authorizedAddresses; // Todas las 5 wallets
+    const result4 = validateMultisigRequirements(authorizedAddresses, allSigners);
     console.log(`   Resultado: ${result4.isValid ? '✅' : '❌'} ${result4.message}`);
     
-    // ESCENARIO 5: Firmante no autorizado
-    console.log("\n📋 ESCENARIO 5: Firmante no autorizado");
+    // ESCENARIO 5: Firmantes duplicados
+    console.log("\n📋 ESCENARIO 5: Firmantes duplicados");
+    const duplicateSigners = [authorizedAddresses[0], authorizedAddresses[1], authorizedAddresses[0]]; // Wallet 1 repetida
+    const result5 = validateMultisigRequirements(authorizedAddresses, duplicateSigners);
+    console.log(`   Resultado: ${result5.isValid ? '✅' : '❌'} ${result5.message}`);
+    
+    // ESCENARIO 6: Firmante no autorizado
+    console.log("\n📋 ESCENARIO 6: Firmante no autorizado");
     const unauthorizedSigner = "addr_test1qpunauthorized_fake_address_that_is_not_in_authorized_list";
     const unauthorizedSigners = [authorizedAddresses[0], authorizedAddresses[1], unauthorizedSigner];
-    const result5 = validateMultisigRequirements(authorizedAddresses, unauthorizedSigners);
-    console.log(`   Resultado: ${result5.isValid ? '✅' : '❌'} ${result5.message}`);
+    const result6 = validateMultisigRequirements(authorizedAddresses, unauthorizedSigners);
+    console.log(`   Resultado: ${result6.isValid ? '✅' : '❌'} ${result6.message}`);
     
     console.log("\n" + "=".repeat(60));
     console.log("📊 RESUMEN DE PRUEBAS");
     console.log("=".repeat(60));
-    const results = [result1, result2, result3, result4, result5];
+    const results = [result1, result2, result3, result4, result5, result6];
     const validResults = results.filter(r => r.isValid).length;
     const invalidResults = results.filter(r => !r.isValid).length;
     
-    console.log(`✅ Escenarios válidos: ${validResults}/5`);
-    console.log(`❌ Escenarios inválidos: ${invalidResults}/5`);
-    console.log(`🎯 Comportamiento esperado: 1 válido, 4 inválidos`);
+    console.log(`✅ Escenarios válidos: ${validResults}/6`);
+    console.log(`❌ Escenarios inválidos: ${invalidResults}/6`);
+    console.log(`🎯 Comportamiento esperado: 3 válidos (3, 4, 5 firmas), 3 inválidos`);
     
-    if (validResults === 1 && invalidResults === 4) {
+    if (validResults === 3 && invalidResults === 3) {
         console.log("🎉 TODAS LAS PRUEBAS PASARON CORRECTAMENTE");
+        console.log("✅ atLeast funciona: 3, 4 y 5 firmas son válidas");
     } else {
         console.log("⚠️  RESULTADOS INESPERADOS - REVISAR LÓGICA");
     }

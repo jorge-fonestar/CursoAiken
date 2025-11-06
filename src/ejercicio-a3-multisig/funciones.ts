@@ -14,3 +14,9 @@ export function LoadWallet(seed_str: string): MeshWallet {
     });
     return wallet;
 }
+
+export async function FirmarTx(wallet: MeshWallet, unsignedTx: any) {
+    const signedTx = await wallet.signTx(unsignedTx);
+    const txHash = await wallet.submitTx(signedTx);
+    return txHash;
+}
